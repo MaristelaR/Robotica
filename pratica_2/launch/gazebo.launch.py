@@ -1,7 +1,8 @@
 import os
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
+from launch.actions import IncludeLaunchDescription, RegisterEventHandler
+from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 
@@ -10,10 +11,10 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
 
-    # 1. Pega o diretório do pacote do seu robô
+    # Diretório do pacote
     model_description = get_package_share_directory('pratica_2')
 
-    # 2. Aponta para arquivo URDF
+    # Caminho do URDF
     robot_urdf_path = os.path.join(
         model_description,
         'models',
@@ -21,12 +22,18 @@ def generate_launch_description():
         'model.urdf'
     )
 
-    # Lê o conteúdo do arquivo URDF como texto para passar para o node de publicação
+    # Lê o URDF
     with open(robot_urdf_path, 'r') as infp:
         robot_description_content = infp.read()
 
-    # 3. Inclui o launch oficial do Gazebo Classic (gazebo_ros)
+    # Substitui $(find pratica_2) pelo caminho real do pacote
+    robot_description_content = robot_description_content.replace(
+        '$(find pratica_2)', model_description
+    )
+
+    # Gazebo Classic
     gazebo_ros_dir = get_package_share_directory('gazebo_ros')
+
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
@@ -37,8 +44,7 @@ def generate_launch_description():
         )
     )
 
-    # 4. Nó 'robot_state_publisher': Publica a árvore cinemática do URDF no ROS 2
-    # O Gazebo Classic usa isso para ler o URDF convertendo-o internamente.
+    # Robot State Publisher
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -49,23 +55,58 @@ def generate_launch_description():
         }]
     )
 
-    # 5. Nó 'spawn_entity': Pega o robô publicado no tópico e o insere no Gazebo Classic
+    # Spawn do robô no Gazebo
     spawn_robot = Node(
         package='gazebo_ros',
         executable='spawn_entity.py',
         arguments=[
-            '-topic', 'robot_description',  # Agora puxa do tópico e não de um arquivo isolado
+            '-topic', 'robot_description',
             '-entity', 'my_robot',
             '-x', '0',
             '-y', '0',
-            '-z', '0'
+            '-z', '0.3',
         ],
         output='screen'
     )
 
-    # Retorna todos os componentes para o Launch do ROS 2
+    # Carrega joint_state_broadcaster
+    joint_state_broadcaster_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=[
+            'joint_state_broadcaster',
+            '--controller-manager',
+            '/controller_manager'
+        ],
+        output='screen'
+    )
+
+    # Carrega diff_drive_controller
+    diff_drive_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=[
+            'diff_drive_controller',
+            '--controller-manager',
+            '/controller_manager'
+        ],
+        output='screen'
+    )
+
+    # Só carrega os controladores depois que o robô foi spawnado
+    load_controllers = RegisterEventHandler(
+        OnProcessExit(
+            target_action=spawn_robot,
+            on_exit=[
+                joint_state_broadcaster_spawner,
+                diff_drive_controller_spawner
+            ]
+        )
+    )
+
     return LaunchDescription([
         gazebo,
         robot_state_publisher_node,
-        spawn_robot
+        spawn_robot,
+        load_controllers
     ])

@@ -1,227 +1,224 @@
 <?xml version="1.0"?>
 <robot name="my_robot">
 
-  <!-- 
-    MUDANÇA: Substituição de <model name="..."> por <robot name="...">.
-    PORQUÊ: O formato URDF (Unified Robot Description Format) exige a tag raiz <robot> 
-    para definir a árvore cinemática do robô, ao contrário do SDF que usa <model>.
-  -->
-
-  <!-- ==================== CHASSIS LINK ==================== -->
+  <!-- ========================================================= -->
+  <!-- CHASSIS                                                   -->
+  <!-- ========================================================= -->
   <link name="chassis">
-    
-    <!-- 
-      MUDANÇA: Adição manual da tag <inertial> com <mass> e <inertia>.
-      PORQUÊ: No SDF, se você omitir a inércia, o simulador (como o Gazebo clássico) 
-      às vezes tenta estimar, mas no ecossistema ROS/URDF, cada link EXIGE propriedades 
-      de inércia válidas.
-    -->
     <inertial>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
       <mass value="1.0"/>
-      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <!-- Caixa: 0.4 x 0.2 x 0.1 m -->
+      <inertia
+        ixx="0.0034167"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="0.0134167"
+        iyz="0.0"
+        izz="0.0166667"/>
     </inertial>
 
-    <!-- 
-      MUDANÇA: Mudança de <pose> para <origin xyz="..." rpy="..."> dentro dos elementos de geometria.
-      PORQUÊ: O URDF padroniza que deslocamentos de posição (xyz) e orientação (rpy - Roll, Pitch, Yaw) 
-      sejam feitos através da tag <origin>.
-    -->
     <visual>
       <origin xyz="0 0 0.05" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://pioneer2dx/meshes/chassis.dae" scale="0.9 0.5 0.5"/>
+        <box size="0.4 0.2 0.1"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.4 0.2 0.1"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- ========================================================= -->
+  <!-- LEFT WHEEL                                                -->
+  <!-- ========================================================= -->
+  <link name="left_wheel">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.1"/>
+      <!-- Cilindro: raio 0.1 m, comprimento 0.05 m -->
+      <!-- Eixo do cilindro originalmente em Y -->
+      <inertia
+        ixx="0.0002917"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="0.0005"
+        iyz="0.0"
+        izz="0.0002917"/>
+    </inertial>
+
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.1" length="0.05"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.1" length="0.05"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- ========================================================= -->
+  <!-- RIGHT WHEEL                                               -->
+  <!-- ========================================================= -->
+  <link name="right_wheel">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.1"/>
+      <!-- Cilindro: raio 0.1 m, comprimento 0.05 m -->
+      <!-- Eixo do cilindro originalmente em Y -->
+      <inertia
+        ixx="0.0002917"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="0.0005"
+        iyz="0.0"
+        izz="0.0002917"/>
+    </inertial>
+
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.1" length="0.05"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.1" length="0.05"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- ========================================================= -->
+  <!-- CASTER                                                    -->
+  <!-- ========================================================= -->
+  <link name="caster">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.05"/>
+      <!-- Esfera de raio 0.05 m -->
+      <inertia
+        ixx="0.00005"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="0.00005"
+        iyz="0.0"
+        izz="0.00005"/>
+    </inertial>
+
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.05"/>
       </geometry>
     </visual>
 
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <box size="0.4 0.2 0.1"/>
-      </geometry>
-    </collision>
-
-    <!-- 
-      A roda boba (caster) permanece dentro do link "chassis".
-
-      IMPORTANTE:
-      O centro da caster está em Z = -0.05 e seu raio é 0.05.
-
-      Portanto:
-
-      -0.05 - 0.05 = -0.10
-
-      Esse é o ponto mais baixo da caster.
-
-      Para manter o robô alinhado, as rodas também terão seu ponto mais baixo em Z = -0.10.
-    -->
-    <collision name="caster_collision">
-      <origin xyz="-0.15 0 -0.05" rpy="0 0 0"/>
-      <geometry>
         <sphere radius="0.05"/>
       </geometry>
     </collision>
-
-    <visual name="caster_visual">
-      <origin xyz="-0.15 0 -0.05" rpy="0 0 0"/>
-      <geometry>
-        <sphere radius="0.05"/>
-      </geometry>
-    </visual>
-
   </link>
 
-
-  <!-- ==================== LEFT WHEEL LINK ==================== -->
-  <link name="left_wheel">
-
-    <!-- 
-      MUDANÇA: Adicionada a tag <inertial> obrigatória também para a roda esquerda.
-    -->
-    <inertial>
-      <mass value="0.1"/>
-      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
-    </inertial>
-
-    <!-- 
-      MUDANÇA: A rotação da roda agora é realizada dentro de <visual> e <collision>.
-
-      PORQUÊ: O cilindro no URDF é criado inicialmente com seu eixo longitudinal apontando
-      para o eixo Z.
-
-      Como queremos que a roda gire em torno do eixo Y, rotacionamos o cilindro
-      90 graus em torno do eixo X.
-
-      1.5708 rad ≈ 90 graus.
-    -->
-    <visual>
-      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
-      <geometry>
-        <cylinder radius="0.1" length="0.05"/>
-      </geometry>
-    </visual>
-
-    <collision>
-      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
-      <geometry>
-        <cylinder radius="0.1" length="0.05"/>
-      </geometry>
-    </collision>
-
-  </link>
-
-
-  <!-- ==================== RIGHT WHEEL LINK ==================== -->
-  <link name="right_wheel">
-
-    <!-- 
-      MUDANÇA: Adicionada a tag <inertial> obrigatória para a roda direita.
-    -->
-    <inertial>
-      <mass value="0.1"/>
-      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
-    </inertial>
-
-    <!-- 
-      A mesma rotação utilizada na roda esquerda é aplicada aqui.
-
-      Isso garante que as duas rodas fiquem paralelas e alinhadas.
-    -->
-    <visual>
-      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
-      <geometry>
-        <cylinder radius="0.1" length="0.05"/>
-      </geometry>
-    </visual>
-
-    <collision>
-      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
-      <geometry>
-        <cylinder radius="0.1" length="0.05"/>
-      </geometry>
-    </collision>
-
-  </link>
-
-
-  <!-- ==================== JOINTS (ARTICULAÇÕES) ==================== -->
-  
+  <!-- ========================================================= -->
+  <!-- LEFT WHEEL JOINT                                          -->
+  <!-- ========================================================= -->
   <joint name="left_wheel_hinge" type="continuous">
-
-    <!-- 
-      O tipo continuous permite que a roda gire indefinidamente,
-      sem limites mínimos ou máximos de rotação.
-    -->
-
     <parent link="chassis"/>
     <child link="left_wheel"/>
-
-    <!-- 
-      MUDANÇA IMPORTANTE:
-
-      ANTES:
-
-      xyz="0.1 0.13 0.1"
-      rpy="0 1.5707 1.5707"
-
-      AGORA:
-
-      xyz="0.1 0.13 0"
-      rpy="0 0 0"
-
-      PORQUÊ:
-
-      A roda possui raio de 0.1.
-
-      Se o centro da roda estiver em Z = 0:
-
-      0 - 0.1 = -0.1
-
-      Portanto, o ponto mais baixo da roda fica em Z = -0.10.
-
-      Esse valor é exatamente igual ao ponto mais baixo da caster:
-
-      -0.05 - 0.05 = -0.10
-
-      Assim, roda esquerda, roda direita e caster ficam apoiadas
-      no mesmo plano, deixando o robô alinhado.
-    -->
-    <origin xyz="0.1 0.13 0" rpy="0 0 0"/>
-
-    <!-- 
-      O eixo de rotação continua sendo o eixo Y.
-
-      Como não estamos mais rotacionando o frame da joint,
-      o eixo Y permanece corretamente definido.
-    -->
+    <origin xyz="0.1 0.13 0.0" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
-
+    <dynamics damping="0.2" friction="0.1"/>
   </joint>
 
-
+  <!-- ========================================================= -->
+  <!-- RIGHT WHEEL JOINT                                         -->
+  <!-- ========================================================= -->
   <joint name="right_wheel_hinge" type="continuous">
-
     <parent link="chassis"/>
     <child link="right_wheel"/>
-
-    <!-- 
-      Mesma lógica aplicada à roda direita.
-
-      A única diferença é o sinal negativo do eixo Y,
-      posicionando a roda no lado oposto do robô.
-
-      Roda esquerda:
-      Y = 0.13
-
-      Roda direita:
-      Y = -0.13
-    -->
-    <origin xyz="0.1 -0.13 0" rpy="0 0 0"/>
-
-    <!-- 
-      A roda direita também gira em torno do eixo Y.
-    -->
+    <origin xyz="0.1 -0.13 0.0" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
-
+    <dynamics damping="0.2" friction="0.1"/>
   </joint>
+
+  <!-- ========================================================= -->
+  <!-- CASTER JOINT                                              -->
+  <!-- ========================================================= -->
+  <joint name="caster_joint" type="fixed">
+    <parent link="chassis"/>
+    <child link="caster"/>
+    <origin xyz="-0.15 0 -0.05" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ========================================================= -->
+  <!-- ROS 2 CONTROL                                             -->
+  <!-- ========================================================= -->
+  <ros2_control name="GazeboSystem" type="system">
+    <hardware>
+      <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+    </hardware>
+    <joint name="left_wheel_hinge">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="right_wheel_hinge">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+
+  <!-- ========================================================= -->
+  <!-- GAZEBO ROS 2 CONTROL                                      -->
+  <!-- ========================================================= -->
+  <gazebo>
+    <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+      <parameters>$(find pratica_2)/config/controllers.yaml</parameters>
+    </plugin>
+  </gazebo>
+
+  <!-- ========================================================= -->
+  <!-- WHEEL FRICTION                                            -->
+  <!-- ========================================================= -->
+  <gazebo reference="left_wheel">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <kp>100000.0</kp>
+    <kd>1.0</kd>
+    <maxVel>0.1</maxVel>
+    <minDepth>0.001</minDepth>
+  </gazebo>
+
+  <gazebo reference="right_wheel">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <kp>100000.0</kp>
+    <kd>1.0</kd>
+    <maxVel>0.1</maxVel>
+    <minDepth>0.001</minDepth>
+  </gazebo>
+
+  <!-- ========================================================= -->
+  <!-- CASTER FRICTION                                           -->
+  <!-- ========================================================= -->
+  <gazebo reference="caster">
+    <mu1>0.0</mu1>
+    <mu2>0.0</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+  </gazebo>
 
 </robot>

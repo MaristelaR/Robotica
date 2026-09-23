@@ -24,7 +24,7 @@ if(BUILD_TESTING)
 endif()
 
 install(
-  DIRECTORY launch models
+  DIRECTORY launch models config
   DESTINATION share/${PROJECT_NAME}
 )
 

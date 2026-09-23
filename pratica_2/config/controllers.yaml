@@ -1,0 +1,40 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 50
+    use_sim_time: true
+
+    diff_drive_controller:
+      type: diff_drive_controller/DiffDriveController
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+diff_drive_controller:
+  ros__parameters:
+    left_wheel_names: ["left_wheel_hinge"]
+    right_wheel_names: ["right_wheel_hinge"]
+
+    wheel_separation: 0.26
+    wheel_radius: 0.1
+
+    use_stamped_vel: false
+    publish_rate: 50.0
+
+    publish_odom: true
+    enable_odom_tf: true
+    base_frame_id: "chassis"
+    odom_frame_id: "odom"
+
+    linear:
+      x:
+        has_velocity_limits: true
+        max_velocity: 5.0
+        has_acceleration_limits: true
+        max_acceleration: 2.5
+
+    angular:
+      z:
+        has_velocity_limits: true
+        max_velocity: 5.0
+        has_acceleration_limits: true
+        max_acceleration: 2.5
