@@ -1,9 +1,14 @@
 import os
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, RegisterEventHandler
+from launch.actions import (
+    IncludeLaunchDescription,
+    RegisterEventHandler,
+    TimerAction
+)
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+
 from launch_ros.actions import Node
 
 from ament_index_python.packages import get_package_share_directory
@@ -11,10 +16,13 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
 
-    # Diretório do pacote
+    # ==================== PACOTE DO ROBÔ ====================
+
     model_description = get_package_share_directory('pratica_2')
 
-    # Caminho do URDF
+
+    # ==================== URDF ====================
+
     robot_urdf_path = os.path.join(
         model_description,
         'models',
@@ -22,16 +30,13 @@ def generate_launch_description():
         'model.urdf'
     )
 
-    # Lê o URDF
+    # Lê o conteúdo do URDF
     with open(robot_urdf_path, 'r') as infp:
         robot_description_content = infp.read()
 
-    # Substitui $(find pratica_2) pelo caminho real do pacote
-    robot_description_content = robot_description_content.replace(
-        '$(find pratica_2)', model_description
-    )
 
-    # Gazebo Classic
+    # ==================== GAZEBO ====================
+
     gazebo_ros_dir = get_package_share_directory('gazebo_ros')
 
     gazebo = IncludeLaunchDescription(
@@ -44,7 +49,9 @@ def generate_launch_description():
         )
     )
 
-    # Robot State Publisher
+
+    # ==================== ROBOT STATE PUBLISHER ====================
+
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -55,7 +62,9 @@ def generate_launch_description():
         }]
     )
 
-    # Spawn do robô no Gazebo
+
+    # ==================== SPAWN DO ROBÔ ====================
+
     spawn_robot = Node(
         package='gazebo_ros',
         executable='spawn_entity.py',
@@ -64,49 +73,93 @@ def generate_launch_description():
             '-entity', 'my_robot',
             '-x', '0',
             '-y', '0',
-            '-z', '0.3',
+            '-z', '0.11'
         ],
         output='screen'
     )
 
-    # Carrega joint_state_broadcaster
+
+    # ==================== JOINT STATE BROADCASTER ====================
+
     joint_state_broadcaster_spawner = Node(
         package='controller_manager',
         executable='spawner',
         arguments=[
             'joint_state_broadcaster',
             '--controller-manager',
-            '/controller_manager'
+            '/controller_manager',
+            '--controller-manager-timeout',
+            '60'
         ],
         output='screen'
     )
 
-    # Carrega diff_drive_controller
+
+    # ==================== DIFF DRIVE CONTROLLER ====================
+
     diff_drive_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
         arguments=[
             'diff_drive_controller',
             '--controller-manager',
-            '/controller_manager'
+            '/controller_manager',
+            '--controller-manager-timeout',
+            '60'
         ],
         output='screen'
     )
 
-    # Só carrega os controladores depois que o robô foi spawnado
-    load_controllers = RegisterEventHandler(
+
+    # ==================== INICIALIZAÇÃO DOS CONTROLADORES ====================
+
+    # Depois que o robô for inserido no Gazebo,
+    # espera um pouco para a física se estabilizar
+    # e ativa o joint_state_broadcaster.
+    start_joint_state_broadcaster = RegisterEventHandler(
         OnProcessExit(
             target_action=spawn_robot,
             on_exit=[
-                joint_state_broadcaster_spawner,
-                diff_drive_controller_spawner
+                TimerAction(
+                    period=1.0,
+                    actions=[
+                        joint_state_broadcaster_spawner
+                    ]
+                )
             ]
         )
     )
 
+
+    # Depois que o joint_state_broadcaster estiver ativado,
+    # ativa o controlador diferencial.
+    start_diff_drive_controller = RegisterEventHandler(
+        OnProcessExit(
+            target_action=joint_state_broadcaster_spawner,
+            on_exit=[
+                TimerAction(
+                    period=0.5,
+                    actions=[
+                        diff_drive_controller_spawner
+                    ]
+                )
+            ]
+        )
+    )
+
+
+    # ==================== LAUNCH ====================
+
     return LaunchDescription([
+
         gazebo,
+
         robot_state_publisher_node,
+
         spawn_robot,
-        load_controllers
+
+        start_joint_state_broadcaster,
+
+        start_diff_drive_controller
+
     ])
