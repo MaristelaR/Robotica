@@ -1,0 +1,22 @@
+pose_controller:
+  ros__parameters:
+
+    # PID para controle da distância até a posição desejada
+    linear:
+      kp: 0.8
+      ki: 0.0
+      kd: 0.1
+
+    # PID para controle da orientação
+    angular:
+      kp: 2.0
+      ki: 0.0
+      kd: 0.1
+
+    # Limites de velocidade
+    max_linear_velocity: 0.3
+    max_angular_velocity: 1.0
+
+    # Tolerâncias
+    position_tolerance: 0.05
+    orientation_tolerance: 0.05

@@ -1,0 +1,24 @@
+trajectory_controller:
+  ros__parameters:
+
+    # Modo:
+    # "open_loop"  -> malha aberta
+    # "closed_loop" -> realimentado
+    control_mode: "closed_loop"
+
+    # Trajetória em 8
+    A: 1.0
+    B: 2.0
+    omega: 0.2
+
+    # Feedforward
+    Kff: 1.0
+
+    # Ganhos de tracking
+    Kx: 1.0
+    Ky: 2.0
+    Ktheta: 2.0
+
+    # Limites
+    max_linear_velocity: 1.0
+    max_angular_velocity: 2.0
