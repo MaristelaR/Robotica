@@ -1,0 +1,626 @@
+<?xml version="1.0"?>
+<robot name="my_robot">
+
+  <!-- Chassis e Estrutura base-->
+  <link name="chassis">
+    <inertial>
+      <mass value="1.0"/>
+      <inertia
+        ixx="0.01" ixy="0" ixz="0"
+        iyy="0.01" iyz="0" izz="0.01"/>
+    </inertial>
+
+    <visual>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <geometry>
+        <mesh
+          filename="package://pioneer2dx/meshes/chassis.dae"
+          scale="0.9 0.5 0.5"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.4 0.2 0.1"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Rodas -->
+  <link name="caster_link">
+    <inertial>
+      <mass value="0.01"/>
+      <inertia
+        ixx="0.00001" ixy="0" ixz="0"
+        iyy="0.00001" iyz="0" izz="0.00001"/>
+    </inertial>
+
+    <visual>
+      <geometry>
+        <sphere radius="0.05"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <sphere radius="0.05"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Roda esquerda -->
+  <link name="left_wheel">
+    <inertial>
+      <mass value="0.1"/>
+      <inertia
+        ixx="0.001" ixy="0" ixz="0"
+        iyy="0.001" iyz="0" izz="0.001"/>
+    </inertial>
+
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.1" length="0.05"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.1" length="0.05"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Roda direita -->
+  <link name="right_wheel">
+    <inertial>
+      <mass value="0.1"/>
+      <inertia
+        ixx="0.001" ixy="0" ixz="0"
+        iyy="0.001" iyz="0" izz="0.001"/>
+    </inertial>
+
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.1" length="0.05"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.1" length="0.05"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Juntas da tração e suporte -->
+  <joint name="caster_joint" type="fixed">
+    <parent link="chassis"/>
+    <child link="caster_link"/>
+    <origin xyz="-0.15 0 -0.05" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="left_wheel_hinge" type="continuous">
+    <parent link="chassis"/>
+    <child link="left_wheel"/>
+    <origin xyz="0.1 0.13 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <dynamics damping="0.02" friction="0.02"/>
+  </joint>
+
+  <joint name="right_wheel_hinge" type="continuous">
+    <parent link="chassis"/>
+    <child link="right_wheel"/>
+    <origin xyz="0.1 -0.13 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <dynamics damping="0.02" friction="0.02"/>
+  </joint>
+
+  <!-- Propriedades de atrito -->
+  <gazebo reference="caster_link">
+    <mu1>0.001</mu1>
+    <mu2>0.001</mu2>
+  </gazebo>
+
+  <gazebo reference="left_wheel">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+  </gazebo>
+
+  <gazebo reference="right_wheel">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+  </gazebo>
+
+  <!-- Sensor IMU-->
+  <link name="imu_link">
+    <inertial>
+      <mass value="0.02"/>
+      <inertia
+        ixx="0.00001" ixy="0" ixz="0"
+        iyy="0.00001" iyz="0" izz="0.00001"/>
+    </inertial>
+
+    <visual>
+      <geometry>
+        <box size="0.06 0.04 0.025"/>
+      </geometry>
+      <material name="imu_blue">
+        <color rgba="0.1 0.3 0.9 1"/>
+      </material>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="0.06 0.04 0.025"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="imu_joint" type="fixed">
+    <parent link="chassis"/>
+    <child link="imu_link"/>
+    <origin xyz="0 0 0.13" rpy="0 0 0"/>
+  </joint>
+
+  <gazebo reference="imu_link">
+
+    <material>Gazebo/Blue</material>
+
+    <sensor name="imu_sensor" type="imu">
+
+      <always_on>true</always_on>
+      <update_rate>50</update_rate>
+      <visualize>true</visualize>
+
+      <imu>
+
+        <!-- Ruído da velocidade angular -->
+        <angular_velocity>
+          <x>
+            <noise type="gaussian">
+              <mean>0</mean>
+              <stddev>0.002</stddev>
+            </noise>
+          </x>
+          <y>
+            <noise type="gaussian">
+              <mean>0</mean>
+              <stddev>0.002</stddev>
+            </noise>
+          </y>
+          <z>
+            <noise type="gaussian">
+              <mean>0</mean>
+              <stddev>0.002</stddev>
+            </noise>
+          </z>
+        </angular_velocity>
+
+        <!-- Ruído da aceleração linear -->
+        <linear_acceleration>
+          <x>
+            <noise type="gaussian">
+              <mean>0</mean>
+              <stddev>0.02</stddev>
+            </noise>
+          </x>
+          <y>
+            <noise type="gaussian">
+              <mean>0</mean>
+              <stddev>0.02</stddev>
+            </noise>
+          </y>
+          <z>
+            <noise type="gaussian">
+              <mean>0</mean>
+              <stddev>0.02</stddev>
+            </noise>
+          </z>
+        </linear_acceleration>
+
+      </imu>
+
+      <plugin
+        name="imu_ros_plugin"
+        filename="libgazebo_ros_imu_sensor.so">
+
+        <ros>
+          <remapping>~/out:=/imu/data</remapping>
+        </ros>
+
+        <frame_name>imu_link</frame_name>
+        <initial_orientation_as_reference>false</initial_orientation_as_reference>
+
+      </plugin>
+
+    </sensor>
+  </gazebo>
+
+  <!-- Sensor GPS -->
+  <link name="gps_link">
+    <inertial>
+      <mass value="0.03"/>
+      <inertia
+        ixx="0.00001" ixy="0" ixz="0"
+        iyy="0.00001" iyz="0" izz="0.00001"/>
+    </inertial>
+
+    <visual>
+      <geometry>
+        <cylinder radius="0.025" length="0.025"/>
+      </geometry>
+      <material name="gps_green">
+        <color rgba="0.0 0.8 0.2 1.0"/>
+      </material>
+    </visual>
+
+    <collision>
+      <geometry>
+        <cylinder radius="0.025" length="0.025"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="gps_joint" type="fixed">
+    <parent link="chassis"/>
+    <child link="gps_link"/>
+    <origin xyz="-0.09 0 0.13" rpy="0 0 0"/>
+  </joint>
+
+  <gazebo reference="gps_link">
+
+    <material>Gazebo/Green</material>
+
+    <sensor name="gps_sensor" type="gps">
+
+      <always_on>true</always_on>
+      <update_rate>5</update_rate>
+
+      <gps>
+        <position_sensing>
+
+          <!-- Ruído horizontal -->
+          <horizontal>
+            <noise type="gaussian">
+              <mean>0</mean>
+              <stddev>0.01</stddev>
+            </noise>
+          </horizontal>
+
+          <!-- Ruído vertical -->
+          <vertical>
+            <noise type="gaussian">
+              <mean>0</mean>
+              <stddev>0.02</stddev>
+            </noise>
+          </vertical>
+
+        </position_sensing>
+      </gps>
+
+      <plugin
+        name="gps_ros_plugin"
+        filename="libgazebo_ros_gps_sensor.so">
+
+        <ros>
+          <remapping>~/out:=/gps/fix</remapping>
+        </ros>
+
+        <frame_name>gps_link</frame_name>
+
+      </plugin>
+
+    </sensor>
+  </gazebo>
+  
+<!-- Sensor câmera RGB -->
+
+<!-- Modelo físico da câmera -->
+<link name="camera_link">
+
+    <inertial>
+        <mass value="0.05"/>
+
+        <inertia
+            ixx="0.00001"
+            ixy="0"
+            ixz="0"
+            iyy="0.00001"
+            iyz="0"
+            izz="0.00001"/>
+    </inertial>
+
+    <!-- Representação visual -->
+    <visual>
+        <geometry>
+            <box size="0.05 0.07 0.05"/>
+        </geometry>
+
+        <material name="camera_black">
+            <color rgba="0.1 0.1 0.1 1.0"/>
+        </material>
+    </visual>
+
+    <!-- Colisão -->
+    <collision>
+        <geometry>
+            <box size="0.05 0.07 0.05"/>
+        </geometry>
+    </collision>
+
+</link>
+
+
+<!-- Junta fixa entre câmera e chassis -->
+<joint name="camera_joint" type="fixed">
+
+    <parent link="chassis"/>
+    <child link="camera_link"/>
+
+    <!-- Câmera posicionada na frente do robô -->
+    <origin xyz="0.23 0 0.10" rpy="0 0 0"/>
+
+</joint>
+
+
+<!-- Referencial óptico da câmera -->
+<link name="camera_optical_frame"/>
+
+<joint name="camera_optical_joint" type="fixed">
+
+    <parent link="camera_link"/>
+    <child link="camera_optical_frame"/>
+
+    <origin xyz="0 0 0" rpy="-1.5707963 0 -1.5707963"/>
+
+</joint>
+
+
+<!-- Configuração da câmera no Gazebo -->
+<gazebo reference="camera_link">
+
+    <material>Gazebo/Black</material>
+
+    <sensor name="rgb_camera_sensor" type="camera">
+
+        <!-- Sensor sempre ligado -->
+        <always_on>true</always_on>
+
+        <!-- Frequência de captura -->
+        <update_rate>30</update_rate>
+
+        <!-- Habilita visualização no Gazebo -->
+        <visualize>true</visualize>
+
+        <!-- Configurações da imagem -->
+        <camera name="rgb_camera">
+
+            <!-- Campo de visão horizontal: 60 graus -->
+            <horizontal_fov>1.0472</horizontal_fov>
+
+            <!-- Resolução e formato -->
+            <image>
+                <width>640</width>
+                <height>480</height>
+                <format>R8G8B8</format>
+            </image>
+
+            <!-- Distâncias de renderização -->
+            <clip>
+                <near>0.1</near>
+                <far>100.0</far>
+            </clip>
+
+            <!-- Ruído gaussiano -->
+            <noise>
+                <type>gaussian</type>
+                <mean>0.0</mean>
+                <stddev>0.007</stddev>
+            </noise>
+
+        </camera>
+
+        <!-- Plugin ROS 2 -->
+        <plugin
+            name="rgb_camera_plugin"
+            filename="libgazebo_ros_camera.so">
+
+            <ros>
+                <namespace>/</namespace>
+                <remapping>image_raw:=/camera/image_raw</remapping>
+                <remapping>camera_info:=/camera/camera_info</remapping>
+            </ros>
+
+            <camera_name>rgb_camera</camera_name>
+
+            <frame_name>camera_optical_frame</frame_name>
+
+        </plugin>
+
+    </sensor>
+
+</gazebo>
+
+<!-- Sensor Lidar -->
+
+<!-- Modelo físico e visual do LiDAR -->
+<link name="lidar_link">
+
+    <inertial>
+        <mass value="0.10"/>
+
+        <inertia
+            ixx="0.0001"
+            ixy="0"
+            ixz="0"
+            iyy="0.0001"
+            iyz="0"
+            izz="0.0001"/>
+    </inertial>
+
+    <!-- Representação visual -->
+    <visual>
+        <geometry>
+            <cylinder radius="0.045" length="0.05"/>
+        </geometry>
+
+        <material name="lidar_red">
+            <color rgba="0.9 0.1 0.1 1.0"/>
+        </material>
+    </visual>
+
+    <!-- Geometria de colisão -->
+    <collision>
+        <geometry>
+            <cylinder radius="0.045" length="0.05"/>
+        </geometry>
+    </collision>
+
+</link>
+
+
+<!-- Junta fixa entre LiDAR e chassis -->
+<joint name="lidar_joint" type="fixed">
+
+    <parent link="chassis"/>
+    <child link="lidar_link"/>
+
+    <!-- Posição superior frontal -->
+    <origin xyz="0.08 0 0.19" rpy="0 0 0"/>
+
+</joint>
+
+
+<!-- Configuração do LiDAR no Gazebo -->
+<gazebo reference="lidar_link">
+
+    <material>Gazebo/Red</material>
+
+    <sensor name="lidar_sensor" type="ray">
+
+        <!-- Sensor sempre ativo -->
+        <always_on>true</always_on>
+
+        <!-- Frequência de atualização -->
+        <update_rate>10</update_rate>
+
+        <!-- Visualização dos feixes no Gazebo -->
+        <visualize>true</visualize>
+
+        <!-- Configurações do laser -->
+        <ray>
+
+            <!-- Varredura -->
+            <scan>
+
+                <horizontal>
+
+                    <!-- Quantidade de feixes -->
+                    <samples>360</samples>
+
+                    <!-- Resolução -->
+                    <resolution>1</resolution>
+
+                    <!-- Ângulo mínimo: -180 graus -->
+                    <min_angle>-3.14159265</min_angle>
+
+                    <!-- Ângulo máximo: +180 graus -->
+                    <max_angle>3.14159265</max_angle>
+
+                </horizontal>
+
+            </scan>
+
+            <!-- Alcance do sensor -->
+            <range>
+
+                <!-- Distância mínima -->
+                <min>0.12</min>
+
+                <!-- Distância máxima -->
+                <max>10.0</max>
+
+                <!-- Resolução das distâncias -->
+                <resolution>0.01</resolution>
+
+            </range>
+
+            <!-- Ruído gaussiano -->
+            <noise>
+
+                <type>gaussian</type>
+
+                <mean>0.0</mean>
+
+                <stddev>0.01</stddev>
+
+            </noise>
+
+        </ray>
+
+        <!-- Plugin de integração com ROS 2 -->
+        <plugin
+            name="lidar_ros_plugin"
+            filename="libgazebo_ros_ray_sensor.so">
+
+            <ros>
+                <remapping>~/out:=/scan</remapping>
+            </ros>
+
+            <!-- Tipo de mensagem publicada -->
+            <output_type>sensor_msgs/LaserScan</output_type>
+
+            <!-- Referencial do sensor -->
+            <frame_name>lidar_link</frame_name>
+
+        </plugin>
+
+    </sensor>
+
+</gazebo>
+
+<!-- Controle diferencial -->
+<gazebo>
+
+    <plugin
+        name="differential_drive"
+        filename="libgazebo_ros_diff_drive.so">
+
+        <!-- Comunicação com ROS 2 -->
+        <ros>
+            <remapping>cmd_vel:=/cmd_vel</remapping>
+            <remapping>odom:=/odom</remapping>
+        </ros>
+
+        <!-- Frequência do controlador -->
+        <update_rate>50</update_rate>
+
+        <!-- Juntas das rodas -->
+        <left_joint>left_wheel_hinge</left_joint>
+        <right_joint>right_wheel_hinge</right_joint>
+
+        <!-- Dimensões do robô -->
+        <wheel_separation>0.26</wheel_separation>
+        <wheel_diameter>0.20</wheel_diameter>
+
+        <!-- Limites das rodas -->
+        <max_wheel_torque>20.0</max_wheel_torque>
+        <max_wheel_acceleration>2.0</max_wheel_acceleration>
+
+        <!-- Odometria -->
+        <publish_odom>true</publish_odom>
+        <publish_odom_tf>true</publish_odom_tf>
+        <publish_wheel_tf>false</publish_wheel_tf>
+
+        <odometry_frame>odom</odometry_frame>
+        <robot_base_frame>chassis</robot_base_frame>
+
+    </plugin>
+
+</gazebo>
+</robot>
